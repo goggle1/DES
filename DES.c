@@ -1,9 +1,10 @@
-#include "stdio.h"
-#include "memory.h"
-#include "time.h"
-#include "stdlib.h"
+#include <stdio.h>
+#include <memory.h>
+#include <time.h>
+#include <stdlib.h>
 #include <sys/time.h>
 
+#include "DES.h"
 
 #define PLAIN_FILE_OPEN_ERROR -1
 #define KEY_FILE_OPEN_ERROR -2
@@ -126,8 +127,9 @@ int DES_XOR(ElemType R[48], ElemType L[48],int count);
 int DES_Swap(ElemType left[32],ElemType right[32]);
 int DES_EncryptBlock(ElemType plainBlock[8], ElemType subKeys[16][48], ElemType cipherBlock[8]);
 int DES_DecryptBlock(ElemType cipherBlock[8], ElemType subKeys[16][48], ElemType plainBlock[8]);
-int DES_Encrypt(char *plainFile, char *keyStr,char *cipherFile);
-int DES_Decrypt(char *cipherFile, char *keyStr,char *plainFile);
+int DES_EncryptFile(char *plainFile, char *keyStr,char *cipherFile);
+int DES_DecryptFile(char *cipherFile, char *keyStr,char *plainFile);
+int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr);
 
 //字节转换成二进制
 int ByteToBit(ElemType ch, ElemType bit[8]){
@@ -369,8 +371,21 @@ int DES_DecryptBlock(ElemType cipherBlock[8], ElemType subKeys[16][48],ElemType 
 	return 0;
 }
 
+void BLOCK_print(ElemType block[8])
+{
+	int index = 0;
+
+	fprintf(stdout, "%s begin\n", __FUNCTION__);
+	for(index=0; index<8; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)block[index]);
+	}
+
+	fprintf(stdout, "\n%s end\n", __FUNCTION__);
+}
+
 //加密文件
-int DES_Encrypt(char *plainFile, char *keyStr,char *cipherFile){
+int DES_EncryptFile(char *plainFile, char *keyStr,char *cipherFile){
 	FILE *plain,*cipher;
 	int count;
 	ElemType plainBlock[8],cipherBlock[8],keyBlock[8];
@@ -394,6 +409,7 @@ int DES_Encrypt(char *plainFile, char *keyStr,char *cipherFile){
 		if((count = fread(plainBlock,sizeof(char),8,plain)) == 8){
 			DES_EncryptBlock(plainBlock,subKeys,cipherBlock);
 			fwrite(cipherBlock,sizeof(char),8,cipher);	
+			BLOCK_print(cipherBlock);
 		}
 	}
 	if(count){
@@ -401,8 +417,9 @@ int DES_Encrypt(char *plainFile, char *keyStr,char *cipherFile){
 		memset(plainBlock + count,'\0',7 - count);
 		//最后一个字符保存包括最后一个字符在内的所填充的字符数量
 		plainBlock[7] = 8 - count;
-		DES_EncryptBlock(plainBlock,subKeys,cipherBlock);
+		DES_EncryptBlock(plainBlock,subKeys,cipherBlock);		
 		fwrite(cipherBlock,sizeof(char),8,cipher);
+		BLOCK_print(cipherBlock);
 	}
 	fclose(plain);
 	fclose(cipher);
@@ -410,7 +427,7 @@ int DES_Encrypt(char *plainFile, char *keyStr,char *cipherFile){
 }
 
 //解密文件
-int DES_Decrypt(char *cipherFile, char *keyStr,char *plainFile){
+int DES_DecryptFile(char *cipherFile, char *keyStr,char *plainFile){
 	FILE *plain, *cipher;
 	int count,times = 0;
 	long fileLen;
@@ -468,19 +485,105 @@ int DES_Decrypt(char *cipherFile, char *keyStr,char *plainFile){
 }
 
 
+//解密Text
+int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr){
+
+	int ret = 0;
+	
+	int count,times = 0;
+	long fileLen;
+	ElemType plainBlock[8],cipherBlock[8],keyBlock[8];
+	ElemType bKey[64];
+	ElemType subKeys[16][48];
+
+	int str_len = strlen(cipherText);
+	int cipher_len = str_len/2;
+	char* cipherStr = (char*)malloc(cipher_len);
+	if(cipherStr == NULL)
+	{
+		return -1;
+	}
+	memset(cipherStr, 0, cipher_len);
+	
+	int str_index = 0;
+	for(str_index=0; str_index<str_len; str_index = str_index+2)
+	{
+		char temp[8] = {'\0'};
+		temp[0] = '0';
+		temp[1] = 'x';
+		temp[2] = cipherText[str_index];
+		temp[3] = cipherText[str_index+1];
+		int nValue = 0;
+		sscanf(temp, "%X", &nValue);
+		cipherStr[str_index/2] = (unsigned char)nValue;		
+	}
+	
+	//设置密钥
+	memcpy(keyBlock,keyStr,8);
+	//将密钥转换为二进制流
+	Char8ToBit64(keyBlock,bKey);
+	//生成子密钥
+	DES_MakeSubKeys(bKey,subKeys);
+
+	fileLen = str_len/2;
+	
+	char* tempCipher = cipherStr;
+	char* tempPlain = plainStr;
+	
+	while(1){
+		//密文的字节数一定是8的整数倍		
+		memcpy(cipherBlock, tempCipher, 8);
+		tempCipher += 8;		
+		
+		DES_DecryptBlock(cipherBlock,subKeys,plainBlock);						
+		times += 8;
+		if(times < fileLen){
+			//fwrite(plainBlock,sizeof(char),8,plain);
+			memcpy(tempPlain, plainBlock, 8);
+			tempPlain += 8;
+		}
+		else{
+			break;
+		}
+	}
+	//判断末尾是否被填充
+	if(plainBlock[7] < 8){
+		for(count = 8 - plainBlock[7]; count < 7; count++){
+			if(plainBlock[count] != '\0'){
+				break;
+			}
+		}
+	}	
+	if(count == 7){//有填充
+		//fwrite(plainBlock,sizeof(char),8 - plainBlock[7],plain);
+		memcpy(tempPlain, plainBlock, 8 - plainBlock[7]);
+		tempPlain += 8 - plainBlock[7]; 
+	}
+	else{//无填充
+		//fwrite(plainBlock,sizeof(char),8,plain);
+		memcpy(tempPlain, plainBlock, 8);
+		tempPlain += 8;
+	}
+
+
+	ret = tempPlain - plainStr;
+	return ret;
+}
+
+
 #if 0
 int main()
 {	
 	clock_t a,b;
 	a = clock();
-	DES_Encrypt("1.txt","key.txt","2.txt");
+	DES_EncryptFile("1.txt","key.txt","2.txt");
 	b = clock();
 	//printf("加密消耗%d毫秒\n",b-a);
 	printf("encode %ld ms\n", b-a);
 	
 	system("pause");
 	a = clock();
-	DES_Decrypt("2.txt","key.txt","3.txt");
+	DES_DecryptFile("2.txt","key.txt","3.txt");
 	b = clock();
 	//printf("解密消耗%d毫秒\n",b-a);
 	printf("decode %ld ms\n", b-a);
@@ -502,13 +605,13 @@ int main()
 {
 	struct timeval a, b;
 	time_t diff;
-	int 	count = 100000;
+	int 	count = 1;
 	int 	index = 0;
 	
 	gettimeofday(&a, NULL);
 	for(index=0; index<count; index++)
 	{
-		DES_Encrypt("1.txt","key.txt","2.txt");
+		DES_EncryptFile("1.txt","key.txt","2.txt");
 	}
 	gettimeofday(&b, NULL);
 	//printf("加密消耗%d毫秒\n",b-a);
@@ -520,12 +623,23 @@ int main()
 	gettimeofday(&a, NULL);
 	for(index=0; index<count; index++)
 	{
-		DES_Decrypt("2.txt","key.txt","3.txt");
+		DES_DecryptFile("2.txt","key.txt","3.txt");
 	}
 	gettimeofday(&b, NULL);
 	//printf("解密消耗%d毫秒\n",b-a);
 	diff = timeval_diff(&b, &a);
 	printf("decode %ld us\n", diff/count);
+
+#define MAX_LEN 256
+	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
+	char cipherText[MAX_LEN] = {'\0'};	
+	char plainStr[MAX_LEN]   = {'\0'};
+
+	printf("input cipher text:\n");
+	scanf("%s", cipherText);	
+	
+	int	ret = DES_DecryptText(cipherText, "key.txt", plainStr);
+	fprintf(stdout, "plain[%d]: %s\n", ret, plainStr);
 	
 	//getchar();
 	

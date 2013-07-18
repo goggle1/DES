@@ -1,1 +1,1 @@
-this is the plain text, which will be encoded by DES.
+testciph
