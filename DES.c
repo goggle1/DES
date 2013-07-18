@@ -567,6 +567,13 @@ int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr){
 
 
 	ret = tempPlain - plainStr;
+
+	if(cipherStr != NULL)
+	{
+		free(cipherStr);
+		cipherStr = NULL;
+	}
+	
 	return ret;
 }
 
