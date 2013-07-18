@@ -2,6 +2,7 @@
 #include <memory.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include "DES.h"
@@ -129,7 +130,7 @@ int DES_EncryptBlock(ElemType plainBlock[8], ElemType subKeys[16][48], ElemType 
 int DES_DecryptBlock(ElemType cipherBlock[8], ElemType subKeys[16][48], ElemType plainBlock[8]);
 int DES_EncryptFile(char *plainFile, char *keyStr,char *cipherFile);
 int DES_DecryptFile(char *cipherFile, char *keyStr,char *plainFile);
-int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr);
+int DES_DecryptText(const char *cipherText, const char *keyStr, char *plainStr);
 
 //字节转换成二进制
 int ByteToBit(ElemType ch, ElemType bit[8]){
@@ -486,7 +487,7 @@ int DES_DecryptFile(char *cipherFile, char *keyStr,char *plainFile){
 
 
 //解密Text
-int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr){
+int DES_DecryptText(const char *cipherText, const char *keyStr, char *plainStr){
 
 	int ret = 0;
 	
@@ -495,6 +496,9 @@ int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr){
 	ElemType plainBlock[8],cipherBlock[8],keyBlock[8];
 	ElemType bKey[64];
 	ElemType subKeys[16][48];
+	int str_index = 0;
+	char* tempCipher = NULL;
+	char* tempPlain = NULL;
 
 	int str_len = strlen(cipherText);
 	int cipher_len = str_len/2;
@@ -505,15 +509,14 @@ int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr){
 	}
 	memset(cipherStr, 0, cipher_len);
 	
-	int str_index = 0;
 	for(str_index=0; str_index<str_len; str_index = str_index+2)
 	{
 		char temp[8] = {'\0'};
+		int nValue = 0;
 		temp[0] = '0';
 		temp[1] = 'x';
 		temp[2] = cipherText[str_index];
-		temp[3] = cipherText[str_index+1];
-		int nValue = 0;
+		temp[3] = cipherText[str_index+1];		
 		sscanf(temp, "%X", &nValue);
 		cipherStr[str_index/2] = (unsigned char)nValue;		
 	}
@@ -527,8 +530,8 @@ int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr){
 
 	fileLen = str_len/2;
 	
-	char* tempCipher = cipherStr;
-	char* tempPlain = plainStr;
+	tempCipher = cipherStr;
+	tempPlain = plainStr;
 	
 	while(1){
 		//密文的字节数一定是8的整数倍		
@@ -597,7 +600,9 @@ int main()
 	getchar();
 	return 0;
 }
-#else
+#endif
+
+#if 1
 
 time_t timeval_diff(struct timeval* t2, struct timeval* t1)
 {
@@ -654,6 +659,7 @@ int main()
 }
 
 #endif
+
 
 
 

@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-int DES_DecryptText(char *cipherText, char *keyStr, char *plainStr);
+int DES_DecryptText(const char *cipherText, const char *keyStr, char *plainStr);
 
 #ifdef __cplusplus
 }
