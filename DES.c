@@ -6,6 +6,7 @@
 #include <sys/time.h>
 
 #include "DES.h"
+#include "md5.h"
 
 #define PLAIN_FILE_OPEN_ERROR -1
 #define KEY_FILE_OPEN_ERROR -2
@@ -385,6 +386,21 @@ void BLOCK_print(ElemType block[8])
 	fprintf(stdout, "\n%s end\n", __FUNCTION__);
 }
 
+void BLOCK_output(ElemType block[8], char* out_buf)
+{
+	int index = 0;
+
+	//fprintf(stdout, "%s begin\n", __FUNCTION__);
+	for(index=0; index<8; index++)
+	{
+		//fprintf(stdout, "%02X", (unsigned char)block[index]);
+		sprintf(out_buf+index*2, "%02X", (unsigned char)block[index]);
+	}
+
+	//fprintf(stdout, "\n%s end\n", __FUNCTION__);
+}
+
+
 //加密文件
 int DES_EncryptFile(char *plainFile, char *keyStr,char *cipherFile){
 	FILE *plain,*cipher;
@@ -482,6 +498,63 @@ int DES_DecryptFile(char *cipherFile, char *keyStr,char *plainFile){
 
 	fclose(plain);
 	fclose(cipher);
+	return OK;
+}
+
+
+//加密Text
+int DES_EncryptText(char *plainText, char *keyStr,char *cipherStr)
+{	
+	int count;
+	ElemType plainBlock[8],cipherBlock[8],keyBlock[8];
+	ElemType bKey[64];
+	ElemType subKeys[16][48];
+	
+	//设置密钥
+	memcpy(keyBlock,keyStr,8);
+	//将密钥转换为二进制流
+	Char8ToBit64(keyBlock,bKey);
+	//生成子密钥
+	DES_MakeSubKeys(bKey,subKeys);
+
+	char* temp = plainText;
+	char* plainEnd = plainText + strlen(plainText);
+	char* temp2 = cipherStr;
+	while(temp < plainEnd){
+		//每次读8个字节，并返回成功读取的字节数
+		//if((count = fread(plainBlock,sizeof(char),8,plain)) == 8){
+		if(plainEnd - temp >= 8)
+		{
+			count = 8;
+			memcpy(plainBlock, temp, 8);
+			DES_EncryptBlock(plainBlock,subKeys,cipherBlock);
+			//fwrite(cipherBlock,sizeof(char),8,cipher);	
+			//BLOCK_print(cipherBlock);
+			BLOCK_output(cipherBlock, temp2);
+			temp2 = temp2 + count*2;
+			temp = temp + count;			
+		}
+		else
+		{
+			count = plainEnd - temp;
+			memcpy(plainBlock, temp, count);
+			temp = temp + count;
+		}
+		
+	}
+	if(count){
+		//填充
+		memset(plainBlock + count,'\0',7 - count);
+		//最后一个字符保存包括最后一个字符在内的所填充的字符数量
+		plainBlock[7] = 8 - count;
+		DES_EncryptBlock(plainBlock,subKeys,cipherBlock);		
+		//fwrite(cipherBlock,sizeof(char),8,cipher);
+		//BLOCK_print(cipherBlock);
+		BLOCK_output(cipherBlock, temp2);
+		temp2 = temp2 + count*2;
+	}
+	//fclose(plain);
+	//fclose(cipher);
 	return OK;
 }
 
@@ -619,7 +692,7 @@ int main()
 	time_t diff;
 	int 	count = 1;
 	int 	index = 0;
-	
+#if 0	
 	gettimeofday(&a, NULL);
 	for(index=0; index<count; index++)
 	{
@@ -641,17 +714,60 @@ int main()
 	//printf("解密消耗%d毫秒\n",b-a);
 	diff = timeval_diff(&b, &a);
 	printf("decode %ld us\n", diff/count);
+#endif
 
-#define MAX_LEN 256
+#define MAX_LEN 1024
 	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
 	char cipherText[MAX_LEN] = {'\0'};	
-	char plainStr[MAX_LEN]   = {'\0'};
+	char plainStr[MAX_LEN]   = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789";
+	//char plainStr[MAX_LEN]   = "abcdefghijklmnopqrstuvwxyz012301230123456789";
 
-	printf("input cipher text:\n");
-	scanf("%s", cipherText);	
-	
-	int	ret = DES_DecryptText(cipherText, "key.txt", plainStr);
+	//printf("input cipher text:\n");
+	//scanf("%s", cipherText);	
+	int ret = 0;
+	// read plain
 	fprintf(stdout, "plain[%d]: %s\n", ret, plainStr);
+
+	count = 100000;
+	
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		int	ret1 = DES_EncryptText(plainStr, "mine.key", cipherText);
+		//fprintf(stdout, "cipher[%d]: %s\n", ret1, cipherText);
+	}	
+	gettimeofday(&b, NULL);
+	//printf("加密消耗%d毫秒\n",b-a);
+	diff = timeval_diff(&b, &a);
+	//printf("encode %ld us\n", diff);
+	printf("encode %ld us\n", diff/count);
+
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		int	ret2 = DES_DecryptText(cipherText, "mine.key", plainStr);
+		//fprintf(stdout, "plain[%d]: %s\n", ret2, plainStr);
+	}	
+	gettimeofday(&b, NULL);
+	//printf("解密消耗%d毫秒\n",b-a);
+	diff = timeval_diff(&b, &a);
+	printf("decode %ld us\n", diff/count);
+	//printf("decode %ld us\n", diff);
+
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		MD5_CTX ctx;
+		MD5Init(&ctx);
+		MD5Update(&ctx, plainStr, strlen(plainStr));	
+		char digest[16];
+		MD5Final(digest, &ctx);
+		//fprintf(stdout, "md5[%d]: %s\n", 0, digest);
+	}
+	gettimeofday(&b, NULL);
+	diff = timeval_diff(&b, &a);
+	printf("md5 %ld us\n", diff/count);
+	//printf("md5 %ld us\n", diff);
 	
 	//getchar();
 	
