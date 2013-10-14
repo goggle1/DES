@@ -1,12 +1,8 @@
 #include <stdio.h>
-#include <memory.h>
-#include <time.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
+#include <stdlib.h>
 
 #include "DES.h"
-#include "md5.h"
 
 #define PLAIN_FILE_OPEN_ERROR -1
 #define KEY_FILE_OPEN_ERROR -2
@@ -652,134 +648,6 @@ int DES_DecryptText(const char *cipherText, const char *keyStr, char *plainStr){
 	
 	return ret;
 }
-
-
-#if 0
-int main()
-{	
-	clock_t a,b;
-	a = clock();
-	DES_EncryptFile("1.txt","key.txt","2.txt");
-	b = clock();
-	//printf("¼ÓÃÜÏûºÄ%dºÁÃë\n",b-a);
-	printf("encode %ld ms\n", b-a);
-	
-	system("pause");
-	a = clock();
-	DES_DecryptFile("2.txt","key.txt","3.txt");
-	b = clock();
-	//printf("½âÃÜÏûºÄ%dºÁÃë\n",b-a);
-	printf("decode %ld ms\n", b-a);
-	getchar();
-	return 0;
-}
-#endif
-
-#if 1
-
-time_t timeval_diff(struct timeval* t2, struct timeval* t1)
-{
-	time_t ret1 = 0;
-	time_t ret2 = 0;
-	ret1 = t2->tv_sec - t1->tv_sec;
-	ret2 = ret1 * 1000000 + t2->tv_usec - t1->tv_usec;
-	return ret2;
-}
-
-int main()
-{
-	struct timeval a, b;
-	time_t diff;
-	int 	count = 1;
-	int 	index = 0;
-#if 0	
-	gettimeofday(&a, NULL);
-	for(index=0; index<count; index++)
-	{
-		DES_EncryptFile("1.txt","key.txt","2.txt");
-	}
-	gettimeofday(&b, NULL);
-	//printf("¼ÓÃÜÏûºÄ%dºÁÃë\n",b-a);
-	diff = timeval_diff(&b, &a);
-	printf("encode %ld us\n", diff/count);
-	
-	//system("pause");
-	
-	gettimeofday(&a, NULL);
-	for(index=0; index<count; index++)
-	{
-		DES_DecryptFile("2.txt","key.txt","3.txt");
-	}
-	gettimeofday(&b, NULL);
-	//printf("½âÃÜÏûºÄ%dºÁÃë\n",b-a);
-	diff = timeval_diff(&b, &a);
-	printf("decode %ld us\n", diff/count);
-#endif
-
-#define MAX_LEN 1024
-	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
-	char cipherText[MAX_LEN] = {'\0'};	
-	char plainStr[MAX_LEN]   = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789";
-	//char plainStr[MAX_LEN]   = "abcdefghijklmnopqrstuvwxyz012301230123456789";
-
-	//printf("input cipher text:\n");
-	//scanf("%s", cipherText);	
-	int ret = 0;
-	// read plain
-	fprintf(stdout, "plain[%d]: %s\n", ret, plainStr);
-
-	count = 100000;
-	
-	gettimeofday(&a, NULL);
-	for(index=0; index<count; index++)
-	{
-		int	ret1 = DES_EncryptText(plainStr, "mine.key", cipherText);
-		//fprintf(stdout, "cipher[%d]: %s\n", ret1, cipherText);
-	}	
-	gettimeofday(&b, NULL);
-	//printf("¼ÓÃÜÏûºÄ%dºÁÃë\n",b-a);
-	diff = timeval_diff(&b, &a);
-	//printf("encode %ld us\n", diff);
-	printf("encode %ld us\n", diff/count);
-
-	gettimeofday(&a, NULL);
-	for(index=0; index<count; index++)
-	{
-		int	ret2 = DES_DecryptText(cipherText, "mine.key", plainStr);
-		//fprintf(stdout, "plain[%d]: %s\n", ret2, plainStr);
-	}	
-	gettimeofday(&b, NULL);
-	//printf("½âÃÜÏûºÄ%dºÁÃë\n",b-a);
-	diff = timeval_diff(&b, &a);
-	printf("decode %ld us\n", diff/count);
-	//printf("decode %ld us\n", diff);
-
-	gettimeofday(&a, NULL);
-	for(index=0; index<count; index++)
-	{
-		MD5_CTX ctx;
-		MD5Init(&ctx);
-		MD5Update(&ctx, plainStr, strlen(plainStr));	
-		char digest[16];
-		MD5Final(digest, &ctx);
-		//fprintf(stdout, "md5[%d]: %s\n", 0, digest);
-	}
-	gettimeofday(&b, NULL);
-	diff = timeval_diff(&b, &a);
-	printf("md5 %ld us\n", diff/count);
-	//printf("md5 %ld us\n", diff);
-	
-	//getchar();
-	
-	return 0;
-}
-
-#endif
-
-
-
-
-
 
 
 
