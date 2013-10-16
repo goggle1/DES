@@ -32,7 +32,7 @@ int main()
 }
 #endif
 
-#if 1
+
 
 time_t timeval_diff(struct timeval* t2, struct timeval* t1)
 {
@@ -42,6 +42,8 @@ time_t timeval_diff(struct timeval* t2, struct timeval* t1)
 	ret2 = ret1 * 1000000 + t2->tv_usec - t1->tv_usec;
 	return ret2;
 }
+
+#if 0
 
 int main()
 {
@@ -174,7 +176,7 @@ int main()
 	gettimeofday(&a, NULL);
 	for(index=0; index<count; index++)
 	{
-		int ret1 = Hill_EncryptText(plainStr, "FUNSHION", cipherText);
+		int ret1 = Hill4_EncryptText(plainStr, "FUNSHION", cipherText);
 		//fprintf(stdout, "cipher[%d]: %s\n", ret1, cipherText);
 	}	
 	gettimeofday(&b, NULL);
@@ -186,7 +188,7 @@ int main()
 	gettimeofday(&a, NULL);
 	for(index=0; index<count; index++)
 	{
-		int ret2 = Hill_DecryptText(cipherText, "FUNSHION", plainStr);
+		int ret2 = Hill4_DecryptText(cipherText, "FUNSHION", plainStr);
 		//fprintf(stdout, "plain[%d]: %s\n", ret2, plainStr);
 	}	
 	gettimeofday(&b, NULL);
@@ -203,4 +205,57 @@ int main()
 
 #endif
 
+#if 0
+int main()
+{
+	int num = 21;
+	int index=0;
+	for(index=0; index<256; index++)
+	{
+		if(index*num%256==1)
+		{
+			fprintf(stdout, "%d~%d=1(mod 256)\n", num, index);
+			break;
+		}
+	}
+
+	return 0;
+}
+
+#endif
+
+int main()
+{
+	#define MAX_LEN 1024
+	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
+	char cipherText[MAX_LEN] = {'\0'};	
+	char plainStr[MAX_LEN]	 = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789";
+	//char plainStr[MAX_LEN]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV";
+
+	int plain_len = strlen(plainStr);
+	int ret1 = Hill2_EncryptText(plainStr, "FUNSHION", cipherText);
+	int index=0;
+	fprintf(stdout, "plain: %s\n", plainStr);
+	for(index=0; index<plain_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)plainStr[index]);
+	}
+	fprintf(stdout, "\n");
+	
+	fprintf(stdout, "cipher: \n");
+	for(index=0; index<plain_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)cipherText[index]);
+	}
+	fprintf(stdout, "\n");
+
+	int ret2 = Hill2_DecryptText(cipherText, "FUNSHION", plainStr);
+	fprintf(stdout, "plain: %s\n", plainStr);
+	for(index=0; index<plain_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)plainStr[index]);
+	}
+	fprintf(stdout, "\n");
+	
+}
 

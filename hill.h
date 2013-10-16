@@ -7,8 +7,15 @@ extern "C"
 {
 #endif
 
-int Hill_EncryptText(const char *plainText, const char *keyStr, char *cipherText);
-int Hill_DecryptText(const char *cipherText, const char *keyStr, char *plainText);
+// mod 256
+
+int Hill2_EncryptText(const char *plainText, const char *keyStr, char *cipherText);
+int Hill2_DecryptText(const char *cipherText, const char *keyStr, char *plainText);
+
+
+// mod 26
+int Hill4_EncryptText(const char *plainText, const char *keyStr, char *cipherText);
+int Hill4_DecryptText(const char *cipherText, const char *keyStr, char *plainText);
 
 
 #ifdef __cplusplus
