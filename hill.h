@@ -9,8 +9,10 @@ extern "C"
 
 // mod 256
 
-int Hill2_EncryptText(const char *plainText, const char *keyStr, char *cipherText);
-int Hill2_DecryptText(const char *cipherText, const char *keyStr, char *plainText);
+int Hill2_EncryptText(const char *plainText, char encrypt_key[2][2], char *cipherText);
+
+int Hill2_DecryptText(const char *cipherText, char decrypt_key[2][2], char *plainText);
+
 
 
 // mod 26

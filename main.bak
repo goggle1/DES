@@ -1,0 +1,326 @@
+
+#include <stdio.h>
+#include <memory.h>
+#include <time.h>
+#include <sys/time.h>
+
+
+#include "DES.h"
+#include "md5.h"
+#include "vigenere.h"
+#include "hill.h"
+#include "hill2.h"
+
+#if 0
+int main()
+{	
+	clock_t a,b;
+	a = clock();
+	DES_EncryptFile("1.txt","key.txt","2.txt");
+	b = clock();
+	//printf("¼ÓÃÜÏûºÄ%dºÁÃë\n",b-a);
+	printf("encode %ld ms\n", b-a);
+	
+	system("pause");
+	a = clock();
+	DES_DecryptFile("2.txt","key.txt","3.txt");
+	b = clock();
+	//printf("½âÃÜÏûºÄ%dºÁÃë\n",b-a);
+	printf("decode %ld ms\n", b-a);
+	getchar();
+	return 0;
+}
+#endif
+
+
+
+time_t timeval_diff(struct timeval* t2, struct timeval* t1)
+{
+	time_t ret1 = 0;
+	time_t ret2 = 0;
+	ret1 = t2->tv_sec - t1->tv_sec;
+	ret2 = ret1 * 1000000 + t2->tv_usec - t1->tv_usec;
+	return ret2;
+}
+
+#if 0
+
+int main()
+{
+	struct timeval a, b;
+	time_t diff;
+	int 	count = 1;
+	int 	index = 0;
+#if 0	
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		DES_EncryptFile("1.txt","key.txt","2.txt");
+	}
+	gettimeofday(&b, NULL);
+	//printf("¼ÓÃÜÏûºÄ%dºÁÃë\n",b-a);
+	diff = timeval_diff(&b, &a);
+	printf("encode %ld us\n", diff/count);
+	
+	//system("pause");
+	
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		DES_DecryptFile("2.txt","key.txt","3.txt");
+	}
+	gettimeofday(&b, NULL);
+	//printf("½âÃÜÏûºÄ%dºÁÃë\n",b-a);
+	diff = timeval_diff(&b, &a);
+	printf("decode %ld us\n", diff/count);
+#endif
+
+#if 1
+{
+#define MAX_LEN 1024
+	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
+	char cipherText[MAX_LEN] = {'\0'};	
+	char plainStr[MAX_LEN]   = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789";
+	//char plainStr[MAX_LEN]   = "abcdefghijklmnopqrstuvwxyz012301230123456789";
+
+	//printf("input cipher text:\n");
+	//scanf("%s", cipherText);	
+	int ret = 0;
+	// read plain
+	fprintf(stdout, "plain[%d]: %s\n", ret, plainStr);
+
+	count = 100000;
+#if 0	
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		int	ret1 = DES_EncryptText(plainStr, "mine.key", cipherText);
+		//fprintf(stdout, "cipher[%d]: %s\n", ret1, cipherText);
+	}	
+	gettimeofday(&b, NULL);
+	//printf("¼ÓÃÜÏûºÄ%dºÁÃë\n",b-a);
+	diff = timeval_diff(&b, &a);
+	//printf("encode %ld us\n", diff);
+	printf("encode %ld us\n", diff/count);
+
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		int	ret2 = DES_DecryptText(cipherText, "mine.key", plainStr);
+		//fprintf(stdout, "plain[%d]: %s\n", ret2, plainStr);
+	}	
+	gettimeofday(&b, NULL);
+	//printf("½âÃÜÏûºÄ%dºÁÃë\n",b-a);
+	diff = timeval_diff(&b, &a);
+	printf("decode %ld us\n", diff/count);
+	//printf("decode %ld us\n", diff);
+#endif
+
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		MD5_CTX ctx;
+		MD5Init(&ctx);
+		MD5Update(&ctx, plainStr, strlen(plainStr));	
+		char digest[16];
+		MD5Final(digest, &ctx);
+		//fprintf(stdout, "md5[%d]: %s\n", 0, digest);
+	}
+	gettimeofday(&b, NULL);
+	diff = timeval_diff(&b, &a);
+	printf("md5 %ld us\n", diff/count);
+	//printf("md5 %ld us\n", diff);
+	}
+#endif
+
+{
+#define MAX_LEN 1024
+	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
+	char cipherText[MAX_LEN] = {'\0'};	
+	//char plainStr[MAX_LEN]	 = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789";
+	char plainStr[MAX_LEN]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV";
+
+	//printf("input cipher text:\n");
+	//scanf("%s", cipherText);	
+	int ret = 0;
+	// read plain
+	fprintf(stdout, "plain[%d]: %s\n", ret, plainStr);
+
+	count = 100000;
+	
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		int ret1 = Vigenere_EncryptText(plainStr, "FUNSHION", cipherText);
+		//fprintf(stdout, "cipher[%d]: %s\n", ret1, cipherText);
+	}	
+	gettimeofday(&b, NULL);
+	//printf("¼ÓÃÜÏûºÄ%dºÁÃë\n",b-a);
+	diff = timeval_diff(&b, &a);
+	//printf("encode %ld us\n", diff);
+	printf("Vigenere encode %ld us\n", diff/count);
+
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		int ret2 = Vigenere_DecryptText(cipherText, "FUNSHION", plainStr);
+		//fprintf(stdout, "plain[%d]: %s\n", ret2, plainStr);
+	}	
+	gettimeofday(&b, NULL);
+	//printf("½âÃÜÏûºÄ%dºÁÃë\n",b-a);
+	diff = timeval_diff(&b, &a);
+	printf("Vigenere decode %ld us\n", diff/count);
+	//printf("decode %ld us\n", diff);
+
+
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		int ret1 = Hill4_EncryptText(plainStr, "FUNSHION", cipherText);
+		//fprintf(stdout, "cipher[%d]: %s\n", ret1, cipherText);
+	}	
+	gettimeofday(&b, NULL);
+	//printf("¼ÓÃÜÏûºÄ%dºÁÃë\n",b-a);
+	diff = timeval_diff(&b, &a);
+	//printf("encode %ld us\n", diff);
+	printf("Hill encode %ld us\n", diff/count);
+
+	gettimeofday(&a, NULL);
+	for(index=0; index<count; index++)
+	{
+		int ret2 = Hill4_DecryptText(cipherText, "FUNSHION", plainStr);
+		//fprintf(stdout, "plain[%d]: %s\n", ret2, plainStr);
+	}	
+	gettimeofday(&b, NULL);
+	//printf("½âÃÜÏûºÄ%dºÁÃë\n",b-a);
+	diff = timeval_diff(&b, &a);
+	printf("Hill decode %ld us\n", diff/count);
+	//printf("decode %ld us\n", diff);
+}
+	
+	//getchar();
+	
+	return 0;
+}
+
+#endif
+
+#if 0
+int main()
+{
+	int num = 21;
+	int index=0;
+	for(index=0; index<256; index++)
+	{
+		if(index*num%256==1)
+		{
+			fprintf(stdout, "%d~%d=1(mod 256)\n", num, index);
+			break;
+		}
+	}
+
+	return 0;
+}
+
+#endif
+
+#if 0
+
+static char hill2_encrypt_key[2][2] = 
+{
+	{ 129,	77 },
+	{	6,	99 }
+};
+
+static char hill2_decrypt_key[2][2] = 
+{
+	{ 151, 167 },
+	{ 146, 189 }
+};
+
+int main()
+{
+	#define MAX_LEN 1024
+	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
+	char cipherText[MAX_LEN] = {'\0'};	
+	char plainStr[MAX_LEN]	 = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789x";
+	//char plainStr[MAX_LEN]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV";
+
+	int plain_len = strlen(plainStr);
+	int ret1 = Hill2_EncryptText(plainStr, hill2_encrypt_key, cipherText);
+	int index=0;
+	fprintf(stdout, "plain: %s\n", plainStr);
+	for(index=0; index<plain_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)plainStr[index]);
+	}
+	fprintf(stdout, "\n");
+	
+	fprintf(stdout, "cipher: \n");
+	for(index=0; index<plain_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)cipherText[index]);
+	}
+	fprintf(stdout, "\n");
+
+	int ret2 = Hill2_DecryptText(cipherText, hill2_decrypt_key, plainStr);
+	fprintf(stdout, "plain: %s\n", plainStr);
+	for(index=0; index<plain_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)plainStr[index]);
+	}
+	fprintf(stdout, "\n");
+	
+}
+#endif
+
+static unsigned char hill2_encrypt_key[2][2] = 
+{
+	{ 129,	77 },
+	{	6,	99 }
+};
+
+static unsigned char hill2_decrypt_key[2][2] = 
+{
+	{ 151, 167 },
+	{ 146, 189 }
+};
+
+int main()
+{
+	#define MAX_LEN 1024
+	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
+	char cipherText[MAX_LEN] = {'\0'};	
+	char plainStr[MAX_LEN]	 = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789x";
+	//char plainStr[MAX_LEN]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV";
+
+	int plain_len = strlen(plainStr);
+	int cipher_len = Hill2_Encrypt(plainStr, plain_len, hill2_encrypt_key, cipherText, MAX_LEN);
+	int index=0;
+	fprintf(stdout, "plain[%d]: %s\n", plain_len, plainStr);
+	for(index=0; index<plain_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)plainStr[index]);
+	}
+	fprintf(stdout, "\n");
+	
+	fprintf(stdout, "cipher[%d]: \n", cipher_len);
+	for(index=0; index<cipher_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)cipherText[index]);
+	}
+	fprintf(stdout, "\n");
+
+	int plain_len2 = Hill2_Decrypt(cipherText, cipher_len, hill2_decrypt_key, plainStr, MAX_LEN);
+	fprintf(stdout, "plain2[%d]: %s\n", plain_len2, plainStr);
+	for(index=0; index<plain_len2; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)plainStr[index]);
+	}
+	fprintf(stdout, "\n");
+
+	hill2_make_keys();
+	
+}
+
+
