@@ -18,12 +18,14 @@ static unsigned char hill2_decrypt_key[2][2] =
 };
 
 
+#if 0
 int main()
 {
 	#define MAX_LEN 1024
 	//char cipherText[MAX_LEN] = "13DE55A875D7AB7E";
 	char cipherText[MAX_LEN] = {'\0'};	
-	char plainStr[MAX_LEN]	 = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789x";
+	//char plainStr[MAX_LEN]	 = "abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz0123abcdefghijklmnopqrstuvwxyz01230123456789x";
+	char plainStr[MAX_LEN]	 = "www.funshion.com";
 	//char plainStr[MAX_LEN]   = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUV";
 
 	int plain_len = strlen(plainStr);
@@ -51,7 +53,8 @@ int main()
 	}
 	fprintf(stdout, "\n");
 
-	hill2_make_keys();
+	//hill2_make_keys();
 	
 }
+#endif
 
