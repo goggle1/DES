@@ -65,7 +65,7 @@ for ($i = 0; $i < $cipher_len; $i++)
 print "\n";
 	
 $plainText2 = "";
-$plain2_len = Hill2_Encrypt($cipherText, $cipher_len, $decrypt_key, $plainText2, 1024);
+$plain2_len = Hill2_Decrypt($cipherText, $cipher_len, $decrypt_key, $plainText2, 1024);
 echo $plainText2 . "\n";
 
 

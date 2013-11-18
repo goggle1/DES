@@ -29,6 +29,17 @@ static unsigned char decrypt_key2[2][2] =
 	{  166,   59 }	
 };
 
+static unsigned char encrypt_key_token[2][2] = 
+{
+	{ 129,  77 },
+	{   6,  99 }
+};
+
+static unsigned char decrypt_key_token[2][2] = 
+{	
+	{ 151, 167 },
+	{ 146, 189 }	
+};
 
 
 #if 1
@@ -37,7 +48,10 @@ int main()
 	#define MAX_LEN 1024				
 	//0A141E28D93D00000000526F4733
 	//char plainStr[MAX_LEN]	 = { 0x0A, 0x14, 0x1E, 0x28, 0xD9, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x52, 0x6F, 0x47, 0x33};	
-	char plainStr[MAX_LEN]	 = "hello, funshion";
+	//char plainStr[MAX_LEN]	 = "user=360&client_ip=192.168.160.203&timestamp=1383621431";
+	char plainStr[MAX_LEN]	 = "[{\"mediaid\":\"106203\",\"cid\":";
+	//"124c067507a4b484c48fa51633326993\",\"hashid\":\"b5606d8cb3a57995262f0dc8d9a18395978fce37\",\"fileformat\":\"mp4\",\"timelength\":\"2640456\",\"clarity\":\"tv\",\"byterate\":\"327680\",\"dub_one\":\"chi\",\"dub_two\":\"\",\"publishflag\":\"published\",\"forpc\":\"1\",\"number\":\"1\",\"description\":\"\u7b2c1\u96c6\"},{\"mediaid\":\"106203\",\"cid\":\"124c067507a4b484c48fa51633326993\",\"hashid\":\"67e201ecee87c9fc68080685f183f789d40eb5fd\",\"fileformat\":\"mp4\",\"timelength\":\"2640456\",\"clarity\":\"dvd\",\"byterate\":\"491520\",\"dub_one\":\"chi\",\"dub_two\":\"\",\"publishflag\":"published","forpc":"1","number":"1","description":"\u7b2c1\u96c6"},{"mediaid":"106203","cid":"124c067507a4b484c48fa51633326993","hashid":"82ab8193f396b1ad7245745b27a0e81c8f0b4e4f","fileformat":"mp4","timelength":"2640456","clarity":"high-dvd","byterate":"737280","dub_one":"chi","dub_two":"","publishflag":"published","forpc":"1","number":"1","description":"\u7b2c1\u96c6"}]"
+	
 	char cipherText[MAX_LEN] = {'\0'};
 	char base64Text[MAX_LEN] = {'\0'};
 
