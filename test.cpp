@@ -42,7 +42,7 @@ static unsigned char decrypt_key_token[2][2] =
 };
 
 
-#if 1
+#if 0
 int main()
 {
 	#define MAX_LEN 1024				
@@ -85,6 +85,32 @@ int main()
 	int base_len = MAX_LEN;
 	base64_encode((const unsigned char*)cipherText, cipher_len, (unsigned char*)base64Text, &base_len);
 	fprintf(stdout, "base64: %s\n", base64Text);
+	
+}
+
+#else
+
+int main()
+{
+	#define MAX_LEN 1024	
+
+	char base64_cipher[MAX_LEN] = "wXfoR/Jr";
+	int  base64_cipher_len = strlen(base64_cipher);	
+	char base64_plain[MAX_LEN] = "";
+	int  base64_plain_len = MAX_LEN;
+	base64_decode((const unsigned char *)base64_cipher, base64_cipher_len, (unsigned char *)base64_plain, &base64_plain_len);
+	int index=0;
+	fprintf(stdout, "base64_cipher[%d]: %s\n", base64_cipher_len, base64_cipher);
+	for(index=0; index<base64_plain_len; index++)
+	{
+		fprintf(stdout, "%02X", (unsigned char)base64_plain[index]);
+	}
+	fprintf(stdout, "\n");
+
+	char hill2_plain[MAX_LEN] = "";
+	int  hill2_plain_len = MAX_LEN;
+	int plain_len2 = Hill2_Decrypt(base64_plain, base64_plain_len, decrypt_key2, hill2_plain, MAX_LEN);
+	fprintf(stdout, "plain2[%d]: %s\n", plain_len2, hill2_plain);	
 	
 }
 #endif
